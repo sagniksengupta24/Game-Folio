@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>STUDIO NOVA • 3D Physics Portfolio Experience</title>
+    <meta name="description" content="Interactive 3D physics portfolio experience inspired by Bruno Simon. Drive an RC toy car through interactive project kiosks, domino physics, bowling stunt arena, and contact outposts." />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- 3D WebGL Canvas Container -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Main Glassmorphic HUD Overlay -->
+    <div id="hud">
+      <!-- Top Navigation Bar -->
+      <header class="top-nav">
+        <div class="brand">
+          <span class="brand-badge">RC-01</span>
+          <span class="brand-title">STUDIO NOVA</span>
+        </div>
+
+        <nav class="nav-pills" aria-label="World Zones">
+          <button class="nav-pill active" data-target="paddock">Paddock</button>
+          <button class="nav-pill" data-target="projects">Projects</button>
+          <button class="nav-pill" data-target="skills">Skills Lab</button>
+          <button class="nav-pill" data-target="stunt">Stunt Arena</button>
+          <button class="nav-pill" data-target="contact">Contact</button>
+        </nav>
+
+        <div class="quick-actions">
+          <button id="btn-camera" class="hud-icon-btn" title="Toggle Camera (C)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+          </button>
+          <button id="btn-theme" class="hud-icon-btn" title="Toggle Day/Night (T)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+          <button id="btn-sound" class="hud-icon-btn" title="Mute/Unmute Audio">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          </button>
+          <button id="btn-help" class="hud-icon-btn" title="Controls Help (?)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Center Dynamic Toast Notification for Proximity -->
+      <div id="interaction-prompt" class="interaction-toast" role="status"></div>
+
+      <!-- Score / Strike Toast -->
+      <div id="score-toast" class="score-toast" role="status"></div>
+
+      <!-- Bottom HUD Clusters -->
+      <footer class="bottom-hud">
+        <!-- Speedometer Gauge -->
+        <div class="cluster-speedometer">
+          <svg class="gauge-svg" viewBox="0 0 140 140">
+            <circle class="gauge-bg" cx="70" cy="70" r="54"></circle>
+            <circle class="gauge-ticks" cx="70" cy="70" r="54"></circle>
+            <line id="speed-needle" class="gauge-needle" x1="70" y1="70" x2="70" y2="24"></line>
+            <circle class="gauge-center" cx="70" cy="70" r="6"></circle>
+          </svg>
+          <div class="speed-readout">
+            <span id="speed-value">00</span>
+            <span class="speed-unit">KM/H</span>
+          </div>
+          <div id="gear-badge" class="gear-badge neutral">N</div>
+        </div>
+
+        <!-- Driving Control Prompts (Desktop) -->
+        <div class="control-keys-hint">
+          <div class="key-combo">
+            <span class="kbd">W</span><span class="kbd">A</span><span class="kbd">S</span><span class="kbd">D</span>
+            <span class="label">Drive</span>
+          </div>
+          <div class="key-combo">
+            <span class="kbd">SPACE</span>
+            <span class="label">Drift</span>
+          </div>
+          <div class="key-combo">
+            <span class="kbd">R</span>
+            <span class="label">Reset</span>
+          </div>
+          <div class="key-combo">
+            <span class="kbd">H</span>
+            <span class="label">Horn</span>
+          </div>
+        </div>
+
+        <!-- Radar Mini-Map & Action Buttons -->
+        <div class="cluster-radar">
+          <canvas id="radar-canvas" width="130" height="130"></canvas>
+          <div class="action-buttons-stack">
+            <button id="btn-horn" class="action-btn horn-btn" title="Honk Horn (H)">
+              <span>HORN</span>
+            </button>
+            <button id="btn-reset" class="action-btn reset-btn" title="Reset Car (R)">
+              <span>RESET</span>
+            </button>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Mobile Virtual Touchpad Overlay -->
+    <div id="touch-controls" class="touch-overlay hidden">
+      <div id="touch-joystick" class="touch-joystick">
+        <div id="touch-knob" class="touch-knob"></div>
+      </div>
+      <div class="touch-actions">
+        <button id="touch-horn" class="touch-btn touch-horn">HORN</button>
+        <button id="touch-brake" class="touch-btn touch-brake">REV</button>
+        <button id="touch-gas" class="touch-btn touch-gas">GAS</button>
+      </div>
+    </div>
+
+    <!-- Project Details Dialog -->
+    <dialog id="project-dialog" closedby="any" class="modern-dialog">
+      <div class="dialog-card">
+        <header class="dialog-header">
+          <div>
+            <span id="modal-project-category" class="dialog-badge">CATEGORY</span>
+            <h2 id="modal-project-title" class="dialog-title">Project Title</h2>
+          </div>
+          <button data-dialog-close class="dialog-close-btn" aria-label="Close Dialog">✕</button>
+        </header>
+
+        <div class="dialog-body">
+          <p id="modal-project-desc" class="dialog-desc">Project details and technical architecture.</p>
+          <div class="tags-section">
+            <h4>TECHNOLOGY STACK</h4>
+            <div id="modal-project-tags" class="tags-container"></div>
+          </div>
+        </div>
+
+        <footer class="dialog-footer">
+          <a id="modal-project-demo" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary">
+            <span>Explore Live Demo</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </a>
+          <a id="modal-project-github" href="#" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+            <span>Source Code</span>
+          </a>
+        </footer>
+      </div>
+    </dialog>
+
+    <!-- Contact Dialog -->
+    <dialog id="contact-dialog" closedby="any" class="modern-dialog">
+      <div class="dialog-card">
+        <header class="dialog-header">
+          <div>
+            <span class="dialog-badge accent">COMMUNICATION</span>
+            <h2 class="dialog-title">Transmit Message</h2>
+          </div>
+          <button data-dialog-close class="dialog-close-btn" aria-label="Close Dialog">✕</button>
+        </header>
+
+        <form id="contact-form" class="contact-form">
+          <div class="form-group">
+            <label for="contact-name">Your Name</label>
+            <input type="text" id="contact-name" required placeholder="Pilot or Collaborator" />
+          </div>
+          <div class="form-group">
+            <label for="contact-email">Your Email</label>
+            <input type="email" id="contact-email" required placeholder="you@domain.com" />
+          </div>
+          <div class="form-group">
+            <label for="contact-msg">Message</label>
+            <textarea id="contact-msg" rows="4" required placeholder="Let's build something phenomenal..."></textarea>
+          </div>
+          <div id="contact-status" class="form-status"></div>
+          <button type="submit" class="btn-primary full-width">Transmit Message</button>
+        </form>
+      </div>
+    </dialog>
+
+    <!-- Keyboard & Controls Help Dialog -->
+    <dialog id="help-dialog" closedby="any" class="modern-dialog">
+      <div class="dialog-card">
+        <header class="dialog-header">
+          <div>
+            <span class="dialog-badge">MANUAL</span>
+            <h2 class="dialog-title">Vehicle & Arena Guide</h2>
+          </div>
+          <button data-dialog-close class="dialog-close-btn" aria-label="Close Dialog">✕</button>
+        </header>
+        <div class="dialog-body help-grid">
+          <div class="help-item">
+            <span class="kbd">W / ↑</span>
+            <span>Accelerate Forward</span>
+          </div>
+          <div class="help-item">
+            <span class="kbd">S / ↓</span>
+            <span>Brake / Reverse Gear</span>
+          </div>
+          <div class="help-item">
+            <span class="kbd">A / D / ← / →</span>
+            <span>Steer Left & Right</span>
+          </div>
+          <div class="help-item">
+            <span class="kbd">SPACE</span>
+            <span>Handbrake & Drifting</span>
+          </div>
+          <div class="help-item">
+            <span class="kbd">R</span>
+            <span>Reset / Unflip Car</span>
+          </div>
+          <div class="help-item">
+            <span class="kbd">H</span>
+            <span>RC Toy Horn</span>
+          </div>
+          <div class="help-item">
+            <span class="kbd">C</span>
+            <span>Toggle Camera Views</span>
+          </div>
+          <div class="help-item">
+            <span class="kbd">T</span>
+            <span>Toggle Day / Night Mode</span>
+          </div>
+          <div class="help-item">
+            <span class="kbd">CLICK</span>
+            <span>Click to drive / inspect 3D objects</span>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
