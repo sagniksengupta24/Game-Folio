@@ -2,6 +2,8 @@
 
 > An interactive 3D physics portfolio experience built with **Three.js** and **Cannon-es**, inspired by Bruno Simon. Explore interactive project kiosks, trigger domino physics runs, drift through bowling stunts, and connect via an interactive 3D mailbox in a diorama workshop.
 
+#[![Preview ✌️](https://sagniksengupta24.github.io/Game-Folio/)]
+
 [![Deploy to GitHub Pages](https://github.com/sagniksengupta24/Game-Folio/actions/workflows/deploy.yaml/badge.svg)](https://github.com/sagniksengupta24/Game-Folio/actions/workflows/deploy.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Three.js](https://img.shields.io/badge/Three.js-r186-black?logo=three.js)](https://threejs.org/)
